@@ -27,7 +27,7 @@ jobs:
           rosdep update
           # Not install caret packages in buildfarm
           sed -i '/<depend>caret_analyze<\/depend>/d' package.xml
-          sed -i '/<depend>caret_msgs</depend>/d' package.xml
+          sed -i '/<depend>caret_msgs<\/depend>/d' package.xml
           rosdep install -r -y --from-paths .
         shell: bash
 
