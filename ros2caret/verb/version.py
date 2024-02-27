@@ -14,11 +14,28 @@
 
 from ros2caret.verb import VerbExtension
 
-from ..__version__ import __version__
+import os.path
+import codecs
+import re
 
 
 class CaretVersionVerb(VerbExtension):
 
     def main(self, *, args):
-        version = __version__
-        print(version)
+        version_path = '../../setup.py'
+        version = self.get_version(version_path)
+        print('v' + version)
+
+    def read(self,rel_path):
+        here_path = os.path.dirname(os.path.realpath(__file__))
+        with codecs.open(os.path.join(here_path, rel_path), 'r') as fp:
+            return fp.read()
+
+    def get_version(self,rel_path):
+        version_pattern = re.compile(r"\s*version\s*=\s*['\"](\d+\.\d+\.\d+)['\"]")
+        for line in self.read(rel_path).splitlines():
+            match = version_pattern.search(line)
+            if match:
+                return match.group(1)
+        else:
+            raise RuntimeError("Unable to find version string.")

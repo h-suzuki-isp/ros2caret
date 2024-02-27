@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - v*
+  workflow_dispatch:
 
 jobs:
   update-version-and-create-pr:
@@ -29,7 +30,8 @@ jobs:
       - name: Get New Branch and Tag
         id: tag
         run: |
-          latest_tag=$(curl -s https://api.github.com/repos/${GITHUB_REPOSITORY}/tags | jq -r .[0].name)
+          # latest_tag=$(curl -s https://api.github.com/repos/${GITHUB_REPOSITORY}/tags | jq -r .[0].name)
+          latest_tag=$(curl -s https://api.github.com/repos/tier4/ros2caret/tags | jq -r .[0].name)
           current_tag=${{ github.ref_name }}
           branch=rc/$current_tag
           echo "LATEST_TAG_NAME=$latest_tag" >> "$GITHUB_OUTPUT"
@@ -43,8 +45,10 @@ jobs:
 
       - name: Commit and push changes
         run: |
-          sed -i "s/__version__ =.*/__version__ = '${{ steps.tag.outputs.TAG_NAME }}'/" ros2caret/__version__.py
-          git add ros2caret/__version__.py
+          sed -i "s/version='.*',/version='$(echo "${{ steps.tag.outputs.TAG_NAME }}" | sed 's/^.//')',/" setup.py
+          git add setup.py
+          sed -i "s|<version>.*</version>|<version>$(echo "${{ steps.tag.outputs.TAG_NAME }}" | sed 's/^.//')</version>|" package.xml
+          git add package.xml
           git commit -m "chore: update version to ${{ steps.tag.outputs.TAG_NAME }}" -s
           git push origin ${{ steps.tag.outputs.BRANCH_NAME }}
 
